@@ -13,9 +13,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Sudoku">
 
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-8148071716960089~5769721215"/>
 
         <activity
             android:name=".presentation.MainActivity"

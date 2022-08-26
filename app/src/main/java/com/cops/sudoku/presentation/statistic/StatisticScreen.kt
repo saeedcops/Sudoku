@@ -34,7 +34,11 @@ fun StatisticScreen(navController: NavController,viewModel: StatisticViewModel =
         Difficulty.MEDIUM,
         Difficulty.HARD,
         Difficulty.EXPERT)
+
     var dif by remember { mutableStateOf(0) }
+    /*
+    * This Box is to set background image to scaffold
+    * */
     Box {
         Image(
             modifier = Modifier.fillMaxSize(),
@@ -78,6 +82,9 @@ fun StatisticScreen(navController: NavController,viewModel: StatisticViewModel =
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
+            /*
+            * This Row to select difficulty to show history of Game
+            * */
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround,
@@ -113,6 +120,9 @@ fun StatisticScreen(navController: NavController,viewModel: StatisticViewModel =
             }
 
 
+            /*
+            * This LazyColumn to show history of Game
+            * */
             LazyColumn(){
                 item {
                     Row(

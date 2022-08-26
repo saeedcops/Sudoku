@@ -39,6 +39,7 @@ class GameViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
+    //Setting MediaPlayer and sound list
     var mp: MediaPlayer? = null
     var currentSound = mutableListOf<Int>(
         R.raw.clear,
@@ -55,13 +56,11 @@ class GameViewModel @Inject constructor(
     var subTimerState: ((Long) -> Unit)? = null
     var timerState: Long = 0L
     var isActive = mutableStateOf(true)
-//    var settingState = mutableStateOf(setting)
-    val settingState = mutableStateOf<Setting>(setting)
+    val settingState = mutableStateOf(setting)
     private var isSaved=false
     private var lastX =-1
     private var lastY =-1
     private val _eventFlow = MutableSharedFlow<UIEvent>()
-
     val eventFlow = _eventFlow.asSharedFlow()
     var difficulty: Difficulty= Difficulty.EASY
 
@@ -87,7 +86,6 @@ class GameViewModel @Inject constructor(
                  }
             _sudokuState.value.difficulty=difficulty
             }
-//
     }
 
 
@@ -107,8 +105,8 @@ class GameViewModel @Inject constructor(
         if (timerTracker?.isCancelled == false) timerTracker?.cancel()
     }
 
-     private fun startCoroutineTimer(
-    ) = viewModelScope.launch {
+    private fun startCoroutineTimer() = viewModelScope.launch {
+
         while (isActive.value) {
             delay(1000)
             timerState++
@@ -117,16 +115,53 @@ class GameViewModel @Inject constructor(
         }
     }
 
+    private fun vibrate(){
+        if(!setting.vibration)
+            return
+        val vibrator= (ctx.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O )
+            vibrator.vibrate(VibrationEffect.createOneShot(70,VibrationEffect.DEFAULT_AMPLITUDE))
+        else
+            vibrator.vibrate(70)
+    }
+
+    private fun updateDatabase(){
+        viewModelScope.launch {
+            gameUseCases.updateSudoku(
+                Game(
+                    difficulty,timerState,
+                    _sudokuState.value.mistake,
+                    _sudokuState.value.hint,
+                    _sudokuState.value.graph.generateBoard(),
+                    _sudokuState.value.graph.generateNumberList(),
+                    _sudokuState.value.graph.generateStack()
+                )
+            )
+        }
+    }
+
+    fun insertStatistic(){
+        viewModelScope.launch {
+            statisticUseCases.insertStatistic(
+                Statistic(
+                    difficulty = _sudokuState.value.difficulty,
+                    elapsedTime = timerState, mistake = _sudokuState.value.mistake,
+                    hint = _sudokuState.value.hint))
+            gameUseCases.deleteSudoku(difficulty)
+        }
+    }
+
+
     fun onEvent(event: GameEvent) {
         when (event) {
             GameEvent.OnCreate(difficulty) -> {
                 viewModelScope.launch {
                     _eventFlow.emit(UIEvent.LOADING)
+                    //if the user want saved game get it from db
                     if(isSaved){
 
                         gameUseCases.getSudoku(difficulty).also { cat ->
                             if(cat != null) {
-//                                setSound(4)
                                 _sudokuState.value.difficulty = cat.difficulty
                                 difficulty = cat.difficulty
                                 timerState = cat.elapsedTime
@@ -138,15 +173,17 @@ class GameViewModel @Inject constructor(
 
                         }
                     }
+                    //create new sudoku puzzle
                     else
-                    _sudokuState.value = _sudokuState.value.setValue()
+                        _sudokuState.value = _sudokuState.value.setValue()
+
                     setSound(4)
                     _eventFlow.emit(UIEvent.ACTIVE)
                     timerTracker = startCoroutineTimer()
                 }
 
-//                updateDatabase()
             }
+            // Erase node
             GameEvent.Erase -> {
                 setSound(0)
                 _sudokuState.value = gameUseCases.eraseNode(sudokuState.value)
@@ -154,12 +191,13 @@ class GameViewModel @Inject constructor(
                 updateDatabase()
 
             }
+            // enable or disable fast mode
             GameEvent.Fast -> {
                 setSound(0)
                 _sudokuState.value = gameUseCases.fast(sudokuState.value)
                     .copy(reload = !sudokuState.value.reload)
             }
-
+            //Handle user Input
             is GameEvent.OnInput -> {
                 _sudokuState.value =
                     gameUseCases.updateNode(event.input, sudokuState.value,
@@ -188,6 +226,7 @@ class GameViewModel @Inject constructor(
                 updateDatabase()
             }
             GameEvent.OnLoading -> TODO()
+            //Restart the same game
             GameEvent.OnPlayAgain -> {
                 viewModelScope.launch {
                     setSound(4)
@@ -203,6 +242,7 @@ class GameViewModel @Inject constructor(
                 }
                 updateDatabase()
             }
+            // play new game
             GameEvent.OnRestart -> {
                 viewModelScope.launch {
                     setSound(4)
@@ -217,21 +257,23 @@ class GameViewModel @Inject constructor(
                 }
                 updateDatabase()
             }
+            //Continue to game
             GameEvent.OnContinue -> {
                 isActive.value = true
                 startCoroutineTimer()
             }
+            //stop game
             GameEvent.OnStop -> {
                 updateDatabase()
                 isActive.value = false
                 cancelStuff()
             }
+            //When user click on sudoku node
             is GameEvent.OnTileFocused -> {
                 _sudokuState.value.elapsedTime = timerState
                 _sudokuState.value =
                     gameUseCases.selectNode(event.x, event.y, lastX, lastY, sudokuState.value, {
                         viewModelScope.launch {
-//                            gameUseCases.deleteSudoku()
                             setSound(6)
                             _eventFlow.emit(UIEvent.COMPLETE)
                         }
@@ -252,11 +294,13 @@ class GameViewModel @Inject constructor(
                 lastX = event.x
                 lastY = event.y
             }
+            //Enable or disable pencil mode
             GameEvent.Pencil -> {
                 setSound(0)
                 _sudokuState.value = gameUseCases.pencil(sudokuState.value)
                     .copy(reload = !sudokuState.value.reload)
             }
+            //Back step
             GameEvent.Undo -> {
                 setSound(5)
                 _sudokuState.value = gameUseCases.undo(sudokuState.value) {
@@ -266,7 +310,7 @@ class GameViewModel @Inject constructor(
                 }
                     .copy(reload = !sudokuState.value.reload)
             }
-            is GameEvent.OnCreate -> TODO()
+            //to change theme
             is GameEvent.Theme -> {
                  setting.dark = !setting.dark
                 viewModelScope.launch {
@@ -275,6 +319,7 @@ class GameViewModel @Inject constructor(
                 ThemeState.darkModeState.value = setting.dark
 
             }
+            //enable or disable sound
             GameEvent.Sound -> {
                 settingState.value = setting.copy(sound = !setting.sound)
                 setting.sound = !setting.sound
@@ -283,6 +328,7 @@ class GameViewModel @Inject constructor(
                 }
 
             }
+            //enable or disable Vibration
             GameEvent.Vibration -> {
                 settingState.value = setting.copy(vibration = !setting.vibration)
                 setting.vibration = !setting.vibration
@@ -291,6 +337,7 @@ class GameViewModel @Inject constructor(
                 }
 
             }
+            //to solve sudoku node
             is GameEvent.Hint -> {
                 setSound(2)
                 _sudokuState.value = gameUseCases.hint(sudokuState.value, {
@@ -298,10 +345,8 @@ class GameViewModel @Inject constructor(
                         _eventFlow.emit(UIEvent.Hint)
 
                     }
-//                    return@hint true
                 }, {
                     viewModelScope.launch {
-//                        gameUseCases.deleteSudoku()
                         _eventFlow.emit(UIEvent.COMPLETE)
 
                     }
@@ -313,41 +358,5 @@ class GameViewModel @Inject constructor(
         }
     }
 
-    fun insertStatistic(){
-        viewModelScope.launch {
-            statisticUseCases.insertStatistic(
-                Statistic(
-                difficulty = _sudokuState.value.difficulty,
-                elapsedTime = timerState, mistake = _sudokuState.value.mistake,
-                hint = _sudokuState.value.hint))
-//            if (delete)
-                gameUseCases.deleteSudoku(difficulty)
-        }
-    }
 
-
-    private fun vibrate(){
-        if(!setting.vibration)
-            return
-        val vibrator= (ctx.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O )
-            vibrator.vibrate(VibrationEffect.createOneShot(70,VibrationEffect.DEFAULT_AMPLITUDE))
-        else
-        vibrator.vibrate(70)
-    }
-
-    private fun updateDatabase(){
-        viewModelScope.launch {
-            gameUseCases.updateSudoku(
-                Game(
-                    difficulty,timerState,
-                    _sudokuState.value.mistake,
-                    _sudokuState.value.hint,
-                    _sudokuState.value.graph.generateBoard(),
-                    _sudokuState.value.graph.generateNumberList(),
-                    _sudokuState.value.graph.generateStack()
-                )
-            )
-        }
-    }
 }

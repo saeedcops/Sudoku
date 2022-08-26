@@ -16,9 +16,11 @@ class SudokuBoard: Serializable {
 
     init {
      initialize()
-//        build()
     }
 
+    /**
+     * this method is to set difficulty by setting chosenList
+     * */
     fun setDifficulty(difficulty:Difficulty){
         chosenList = when(difficulty){
             Difficulty.EASY -> listOf(1,1,2,1,1)
@@ -27,6 +29,10 @@ class SudokuBoard: Serializable {
             Difficulty.EXPERT -> listOf(1,2,2,2,2)
         }
     }
+
+    /**
+     * this method is to fill all nodes with 0
+     * */
     fun initialize(){
         stack.clear()
         for (r in 0..8) {
@@ -43,32 +49,48 @@ class SudokuBoard: Serializable {
         }
     }
 
+    /**
+     * this method is to set saved game in the board, numberList, and stack
+     * */
     fun restore(game: Game){
         board=game.board
         numberList=game.numberList.toMutableList()
         stack=game.stack
 
     }
+    /**
+     * this method returns stack
+     * */
     fun generateStack(): Stack<LastState> {
 
         return stack
     }
 
+    /**
+     * this method returns remaining number list
+     * */
     fun generateNumberList(): List<Int> {
 
         return numberList
     }
 
+    /**
+     * this method returns sudoku board
+     * */
     fun generateBoard(): LinkedHashMap<Int,SudokuNode> {
 
         return board
     }
 
+    /**
+     * this recursion method is to build and solve sudoku puzzle
+     * */
    fun build(): Boolean  {
         var row = -1
         var colomn = -1
         for (r in 0..8) {
             for (c in 0..8) {
+                //get row and column that not set yet
                 if (board.get( getHash(r,c))?.correct == 0) {
                     row = r
                     colomn = c
@@ -76,12 +98,14 @@ class SudokuBoard: Serializable {
                 }
             }
         }
-       // get out of recursion
+       // get out of recursion it's done
         if (row == -1 && colomn == -1) {
             return true
         }
 
+        // trying to set value to node
         for (i in 1..9) {
+            //set random value in the first node
             if (i == 1) {
                 board.get( getHash(row,colomn))?.correct = Random().nextInt(9) + 1
             } else {
@@ -89,17 +113,23 @@ class SudokuBoard: Serializable {
                 board.get( getHash(row,colomn))?.correct = i
             }
 
+            // if answer is correct call build again recursively
             if (check(row, colomn)) {
                 if (build()) {
                     hideTile(row,colomn)
                     return true
                 }
             }
+            // set to 0 if answer is wrong
             board.get( getHash(row,colomn))?.correct = 0
         }
         return false
     }
 
+    /**
+     * this method is to hide some nodes based on difficulty
+     * and generated chosenList
+     * */
     private fun hideTile(x:Int,y:Int){
 
         val r=Random().nextInt(5)
@@ -111,6 +141,10 @@ class SudokuBoard: Serializable {
 
     }
 
+    /**
+     * this method returns true if inserted number in the node is correct
+     * and returns false if wrong
+     * */
     private fun check(row: Int, col: Int): Boolean {
         if (board.get( getHash(row,col))!!.correct > 0) {
             for (i in 0..8) {
@@ -134,13 +168,20 @@ class SudokuBoard: Serializable {
         return true
     }
 
+    /**
+     * this method is to push steps in stack
+     * to get it back when needed
+     * */
     private fun saveState(){
 
         stack.push(LastState(board.get(getHash(currentRow, currentColomn))!!.copy(pencilList =
         board.get(getHash(currentRow, currentColomn))!!.pencilList.toMutableSet()),numberList.toList()))
     }
 
-     fun isCompleted():Boolean{
+    /**
+     * this method is to check if game is finished
+     * */
+    fun isCompleted():Boolean{
         var complete=true
         numberList.forEach {
             if (it >0) {
@@ -163,6 +204,9 @@ class SudokuBoard: Serializable {
         return complete
     }
 
+    /**
+     * this method is to restart the same game
+     * */
     fun restart(){
         while(!stack.isEmpty())
          {
@@ -179,6 +223,9 @@ class SudokuBoard: Serializable {
 
     }
 
+    /**
+     * this method is to get back to the last step
+     * */
     fun undo(isEmpty:()->Unit){
         if(stack.isEmpty())
             isEmpty()
@@ -196,7 +243,9 @@ class SudokuBoard: Serializable {
 
     }
 
-
+    /**
+     * this method is to select specific node
+     * */
     fun selectNode(x: Int,y: Int){
         if(currentRow != -1) {
             board.get(getHash(currentRow, currentColomn))?.selected = false
@@ -205,12 +254,18 @@ class SudokuBoard: Serializable {
         currentColomn=y
         board.get(getHash(x,y))?.selected=true
     }
-
+    /**
+     * this method is to return specific node
+     * */
     fun getNode(x: Int,y: Int):SudokuNode{
 
        return board.get(getHash(x,y))!!
     }
 
+    /**
+     * this method is to solve the node
+     * and return 1 if wrong answer
+     * */
     fun updateNode(value:Int,isWrong: (Boolean) -> Unit):Int{
         if(currentRow ==-1 || value ==-1 ||
             board.get(getHash(currentRow, currentColomn))!!.readOnly ||
@@ -241,7 +296,9 @@ class SudokuBoard: Serializable {
     }
 
 
-
+    /**
+     * this method is to erase the node
+     * */
     fun eraseNode(){
         if(currentRow != -1)
         board.get(getHash(currentRow, currentColomn))?.pencilList = mutableSetOf()
@@ -257,6 +314,9 @@ class SudokuBoard: Serializable {
         board.get(getHash(currentRow, currentColomn))?.wrong = false
     }
 
+    /**
+     * this method is to write notes to the node
+     * */
     fun updatePencil(value: Int){
         if(currentRow == -1)
             return
@@ -271,6 +331,10 @@ class SudokuBoard: Serializable {
         board.get(getHash(currentRow,currentColomn))?.pencilList?.add(value)
     }
 
+    /**
+     * this method solves the node
+     * and return 1 if solved to calculate it
+     * */
     fun hint():Int{
         if(currentRow == -1 || board.get(getHash(currentRow,currentColomn))?.readOnly==true ||
             board.get(getHash(currentRow,currentColomn))?.answer == board.get(getHash(currentRow,currentColomn))?.correct)
@@ -293,8 +357,11 @@ class SudokuBoard: Serializable {
         return 1
     }
 
+    /**
+     * this method sets shadow to the node
+     * that have the same value of selected node
+     * */
     fun getSameNumbers(x: Int,y: Int,selected:Boolean){
-
 
         if((board.get(getHash(x,y))?.readOnly == false
                     && board.get( getHash(x,y))?.answer == 0 )
@@ -318,7 +385,11 @@ class SudokuBoard: Serializable {
         }
     }
 
-
+    /**
+     * used when fast mode is enable
+     * this method sets shadow to the node
+     * that have the same value of selected node
+     * */
     fun getSameNumbers(value: Int,selected:Boolean){
 
         if(value == -1)
@@ -335,7 +406,9 @@ class SudokuBoard: Serializable {
         }
     }
 
-
+    /**
+     * this method sets shadow to node
+     * */
      fun setShadow(x: Int,y: Int, shadow: Boolean) {
 
         for (i in 0..8) {
@@ -352,6 +425,10 @@ class SudokuBoard: Serializable {
 
     }
 
+    /**
+    * this method sets shadow to node
+     * used when fast mode is enable
+    * */
     fun setShadow( shadow: Boolean) {
 
         if(currentRow == -1)

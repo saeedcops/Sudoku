@@ -29,7 +29,6 @@ class UpdateNode {
          }else {
 
              sudokuPuzzle.mistake += sudokuPuzzle.graph.updateNode(value,isWrong)
-             // check if complete
              if(sudokuPuzzle.graph.isCompleted())
                  isComplete()
 

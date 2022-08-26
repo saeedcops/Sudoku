@@ -1,7 +1,5 @@
 package com.cops.sudoku.domain.util
 
-import android.app.Activity
-import android.widget.Toast
 import kotlin.math.sqrt
 
 internal val Int.sqrt: Int
@@ -18,18 +16,11 @@ internal fun Long.toTime(): String {
     return String.format("$minutes:$seconds")
 }
 
-internal fun Activity.makeToast(message: String) {
-    Toast.makeText(
-        this,
-        message,
-        Toast.LENGTH_LONG
-    ).show()
-}
 
 internal val Difficulty.toLocalizedResource: String
     get() {
         return when (this) {
-            Difficulty.EASY -> "EASY"//R.string.easy
+            Difficulty.EASY -> "EASY"
             Difficulty.MEDIUM -> "MEDIUM"
             Difficulty.HARD -> "HARD"
             Difficulty.EXPERT -> "EXPERT"

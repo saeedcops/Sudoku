@@ -39,12 +39,14 @@ fun SplashScreen(navController: NavController,
         delay(1000L)
 
         if(splashViewModel.status.value){
+            // navigate to home screen
             if(splashViewModel.isSaved.value){
                 navController.navigate(Screen.HomeScreen.route){
                 popUpTo(Screen.SplashScreen.route) {
-                inclusive = true
-            }
-        }
+                                inclusive = true
+                            }
+                }
+            // navigate to how to play screen
             }else{
                 navController.navigate(Screen.BoardingScreen.route){
                     popUpTo(Screen.SplashScreen.route) {

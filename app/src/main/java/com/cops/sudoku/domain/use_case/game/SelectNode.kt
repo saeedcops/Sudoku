@@ -17,6 +17,7 @@ class SelectNode {
 
         sudokuPuzzle.graph.selectNode(x,y)
 
+        // if fast mode answer when node selected
         if(sudokuPuzzle.fast){
             sudokuPuzzle.mistake += sudokuPuzzle.graph.updateNode(sudokuPuzzle.selectedNumber,isWrong)
             // check if complete
@@ -34,20 +35,20 @@ class SelectNode {
                 sudokuPuzzle.selectedNumber = sudokuPuzzle.graph.getNode(x, y).correct
             }
 
-
-
-
+        // select node and set shadow
         }else{
             if(lastX != -1)
                 sudokuPuzzle.graph.setShadow(lastX,lastY,false)
+
             sudokuPuzzle.graph.setShadow(x,y,true)
         }
 
+        // remove shadow from last selected nodes
         if(lastX != -1)
             sudokuPuzzle.graph.getSameNumbers(lastX,lastY,false)
+
+        // set shadow to the same nodes have the the number
         sudokuPuzzle.graph.getSameNumbers(x,y,true)
-
-
 
         return sudokuPuzzle
     }

@@ -1,7 +1,6 @@
 package com.cops.sudoku.domain.use_case.game
 
 import com.cops.sudoku.domain.util.SudokuPuzzle
-import com.cops.sudoku.domain.util.getHash
 
 class Hint {
 
@@ -13,7 +12,6 @@ class Hint {
     ): SudokuPuzzle {
 
         if (sudokuPuzzle.hint >= 1 || reward){
-//            sudokuPuzzle.hint=0
             sudokuPuzzle.hint -= sudokuPuzzle.graph.hint()
             if (reward)
                 sudokuPuzzle.hint=0

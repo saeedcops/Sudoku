@@ -27,6 +27,9 @@ fun SettingScreen(navController: NavController,
     val scaffoldState = rememberScaffoldState()
 
     SudokuTheme(ThemeState.darkModeState.value){
+    /*
+   * This Box is to set background image to scaffold
+   * */
     Box {
         Image(
             modifier = Modifier.fillMaxSize(),

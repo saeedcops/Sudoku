@@ -35,7 +35,9 @@ fun HomeScreen(navController: NavController,
     val difficulty:List<Difficulty> = listOf(Difficulty.EASY,Difficulty.MEDIUM,Difficulty.HARD,Difficulty.EXPERT)
     var dif by remember { mutableStateOf(1) }
 
-
+    /*
+   * This Box is to set background image to scaffold
+   * */
     Box {
 
         Image(
@@ -51,6 +53,7 @@ fun HomeScreen(navController: NavController,
             backgroundColor = Color.Transparent,
             scaffoldState = scaffoldState,
             topBar = {
+                //This Row acting as TopAppBar
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -88,7 +91,6 @@ fun HomeScreen(navController: NavController,
                             navController.navigate(
                                 Screen.SettingScreen.route
                             )
-//                    viewModel.onEvent(NoteEvent.ToggleOrderSection)
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Settings,
@@ -108,6 +110,7 @@ fun HomeScreen(navController: NavController,
                 verticalArrangement = Arrangement.Center
             ) {
 
+                //This Row for select difficulty
                 Row(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly,
@@ -142,6 +145,7 @@ fun HomeScreen(navController: NavController,
                 }
 
 
+                // New game Button
                 Button(modifier = Modifier.wrapContentSize(),
                     colors = ButtonDefaults.buttonColors(
                         contentColor = Color.White,
@@ -159,7 +163,7 @@ fun HomeScreen(navController: NavController,
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-//                if (viewModel.gameState.value != "")
+                // continue Button visible when there is saved game with the same difficulty
                 AnimatedVisibility(
                         modifier = Modifier.fillMaxWidth(),
                         visible = viewModel.gameState.value != ""

@@ -97,7 +97,6 @@ fun PagerScreen(onBoardingPage: OnBoardingPage) {
     }
 }
 
-//@ExperimentalAnimationApi
 @ExperimentalPagerApi
 @Composable
 fun FinishButton(

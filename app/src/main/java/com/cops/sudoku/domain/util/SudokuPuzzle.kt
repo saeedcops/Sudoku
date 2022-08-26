@@ -17,12 +17,11 @@ data class SudokuPuzzle(
 ): Serializable {
 
    fun setValue(): SudokuPuzzle{
-
        this.graph.setDifficulty(difficulty)
        this.isReady=true
        this.graph.build()
-
        return this
     }
+
     fun getValue(): SudokuBoard = graph
 }

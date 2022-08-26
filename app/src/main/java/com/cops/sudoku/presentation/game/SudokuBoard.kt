@@ -19,6 +19,10 @@ import com.cops.sudoku.domain.util.sqrt
 import com.cops.sudoku.ui.theme.*
 
 
+/**
+* This function is to draw the list of remaining numbers
+* showing in bottom of screen
+* */
 @Composable
 fun InputButtonRow(
     viewModel: GameViewModel
@@ -71,21 +75,26 @@ fun InputButtonRow(
 
 }
 
-
+/**
+* This function is to call SudokuTextFields() and BoardGrid()
+* */
 @Composable
 fun SudokuTile(
     viewModel: GameViewModel,
     size: Dp
 ) {
-    val boundary = 9
-    val tileOffset = size.value / boundary
+    val tileOffset = size.value / 9
     SudokuTextFields(
         tileOffset = tileOffset,
         viewModel = viewModel
     )
     //draw lines
-    BoardGrid(boundary = boundary, tileOffset = tileOffset)
+    BoardGrid(boundary = 9, tileOffset = tileOffset)
 }
+
+/**
+* This function is to draw every node in the grid in our puzzle
+* */
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -98,6 +107,7 @@ fun SudokuTextFields(
                 val node = viewModel.sudokuState.value.graph.generateBoard().get(getHash(r, c))
 
                 node?.answer!!
+                // check to show number written in pencil in node
                 if ( !node.readOnly && node.answer == 0) {
 
                     LazyVerticalGrid(modifier = Modifier
@@ -127,7 +137,7 @@ fun SudokuTextFields(
                         }
 
                     }
-
+                //show readonly nodes and normal nodes
                 } else {
 
                 Text(text = if (node.readOnly == true) node.correct.toString()
@@ -163,6 +173,9 @@ fun SudokuTextFields(
 
 }
 
+/**
+* This function is to draw the grid that contains puzzle
+* */
 
 @Composable
 fun BoardGrid(boundary: Int, tileOffset: Float) {

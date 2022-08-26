@@ -16,14 +16,13 @@ class SettingViewModel @Inject constructor(
     val setting: Setting
 ) : ViewModel()  {
 
-     val settingState = mutableStateOf<Setting>(setting)
+     val settingState = mutableStateOf(setting)
 
     init {
         viewModelScope.launch {
             settingUseCases.getSetting().let {
                 if (it != null) {
                     settingState.value = it
-//                    ThemeState.darkModeState.value = settingState.value.dark
                 }
             }
         }
@@ -47,7 +46,6 @@ class SettingViewModel @Inject constructor(
                 setting.vibration = !setting.vibration
             }
         }
-//        settingState.value=setting.copy()
         viewModelScope.launch {
             settingUseCases.insertSetting(setting)
         }

@@ -14,14 +14,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -32,7 +30,6 @@ import com.cops.sudoku.presentation.game.commponanet.HintDialog
 import com.cops.sudoku.presentation.game.commponanet.PauseDialog
 import com.cops.sudoku.presentation.game.commponanet.WinDialog
 import com.cops.sudoku.presentation.game.commponanet.WrongDialog
-import com.cops.sudoku.presentation.util.*
 import com.cops.sudoku.ui.theme.BlueViolet1
 import com.cops.sudoku.ui.theme.SudokuTheme
 import com.cops.sudoku.ui.theme.ThemeState
@@ -49,6 +46,8 @@ fun GameScreen(navController: NavController,
     val openHintDialog = remember { mutableStateOf(false) }
     val scaffoldState = rememberScaffoldState()
     val ctx= LocalContext.current
+
+    // to collectLatest signal send from viewModel to open dialog
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
@@ -59,7 +58,7 @@ fun GameScreen(navController: NavController,
                 UIEvent.LOADING -> Log.d("UIEvent", "LOADING")
                 UIEvent.Hint -> {
                     openHintDialog.value = true
-                }//{scaffoldState.snackbarHostState.showSnackbar("3 Hint")}
+                }
                 UIEvent.Mistake -> {
                     openWrongDialog.value = true
                 }
@@ -72,6 +71,9 @@ fun GameScreen(navController: NavController,
 
     SudokuTheme(ThemeState.darkModeState.value){
 
+  /*
+  * This Box is to set background image to scaffold
+  * */
     Box {
             Image(
                 modifier = Modifier.fillMaxSize(),
@@ -84,6 +86,7 @@ fun GameScreen(navController: NavController,
         backgroundColor = Color.Transparent,
         scaffoldState = scaffoldState,
         topBar = {
+            //This row as topBar
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -122,7 +125,7 @@ fun GameScreen(navController: NavController,
         },
 
         ) {
-
+        //openPauseDialog
         if (openPauseDialog.value) {
             viewModel.onEvent(GameEvent.OnStop)
             PauseDialog({
@@ -130,6 +133,7 @@ fun GameScreen(navController: NavController,
                 openPauseDialog.value = false
             }, viewModel.timerState,viewModel)
         }
+        //openWrongDialog
         if (openWrongDialog.value) {
             viewModel.onEvent(GameEvent.OnStop)
             WrongDialog(onDismiss = {
@@ -138,19 +142,21 @@ fun GameScreen(navController: NavController,
             }
             ) {
                 Toast.makeText(ctx, "No Ads!", Toast.LENGTH_SHORT).show()
-
             }
         }
+        //openHintDialog
         if (openHintDialog.value) {
             viewModel.onEvent(GameEvent.OnStop)
             HintDialog(onDismiss = {
                 viewModel.onEvent(GameEvent.OnContinue)
                 openHintDialog.value = false
             }) {
+
                 Toast.makeText(ctx, "No Ads!", Toast.LENGTH_SHORT).show()
 
             }
         }
+        //openWinDialog
         if (openWinDialog.value) {
             viewModel.onEvent(GameEvent.OnStop)
             WinDialog(
@@ -169,6 +175,7 @@ fun GameScreen(navController: NavController,
         }
 
 
+        //check if the process of building sudoku done
         if (!viewModel.sudokuState.value.isReady)
             Column(
                 modifier = Modifier
@@ -182,6 +189,7 @@ fun GameScreen(navController: NavController,
                     viewModel.onEvent(GameEvent.OnCreate(viewModel.difficulty))
                 }
             }
+        //show SudokuBoard
         else
             SudokuBoard(viewModel)
     }
@@ -193,18 +201,18 @@ fun GameScreen(navController: NavController,
 fun SudokuBoard(
     viewModel: GameViewModel
 ) {
-    val adWidth = LocalConfiguration.current.screenWidthDp
     var timerState by remember {
         mutableStateOf("")
     }
 
+    // Set timerState
     viewModel.subTimerState = {
         timerState = it.toTime()
     }
 
-//    Timer(time = 0L, viewModel =viewModel )
     BoxWithConstraints {
 
+        //Set screenWidth
         val screenWidth = with(LocalDensity.current) {
             constraints.maxWidth.toDp()
         }
@@ -212,8 +220,10 @@ fun SudokuBoard(
 
         ConstraintLayout {
 
-            val (board,boardTop, adds, diff, inputs) = createRefs()
+            //create Reference to each view
+            val (board,boardTop, diff, inputs) = createRefs()
 
+            //Top Row
             Row(
                 Modifier
                     .fillMaxWidth(0.9f)
@@ -231,6 +241,7 @@ fun SudokuBoard(
                 Text(text = viewModel.difficulty.toLocalizedResource, fontWeight = FontWeight.Bold, fontSize = 19.sp)
             }
 
+            // Sudoku board
             Box(Modifier
                 .constrainAs(board) {
                     top.linkTo(boardTop.bottom)
@@ -246,12 +257,14 @@ fun SudokuBoard(
                 )
             ) {
 
+                //Call tile view
                 SudokuTile(
                     viewModel,
                     screenWidth - margin.dp
                 )
             }
 
+            // This row To interact with tools
             Row(
                 Modifier
                     .fillMaxWidth()
@@ -276,8 +289,7 @@ fun SudokuBoard(
                 }
 
                 IconButton(onClick = {
-//                    mp = MediaPlayer.create(context,currentSound[1])
-//                    mp?.start()
+
                     viewModel.onEvent(GameEvent.Erase) }) {
                     Icon(painter = painterResource(R.drawable.eraser),
                         modifier = Modifier
@@ -287,8 +299,7 @@ fun SudokuBoard(
                 }
 
                 IconButton(onClick = {
-//                    mp = MediaPlayer.create(context,currentSound[2])
-//                    mp?.start()
+
                     viewModel.onEvent(GameEvent.Pencil) }) {
                     Icon(painter =  painterResource(R.drawable.pencil),
                         tint = if(viewModel.sudokuState.value.pencil) Color.Blue
@@ -299,8 +310,7 @@ fun SudokuBoard(
                 }
 
                 IconButton(onClick = {
-//                    mp = MediaPlayer.create(context,currentSound[3])
-//                    mp?.start()
+
                     viewModel.onEvent(GameEvent.Hint(false)) }) {
                     Icon(painter = painterResource(R.drawable.hint),
                         modifier = Modifier

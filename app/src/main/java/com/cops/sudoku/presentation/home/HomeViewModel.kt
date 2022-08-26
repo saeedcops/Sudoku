@@ -26,6 +26,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    //This method take Difficulty to get saved game
     fun onEvent(difficulty: Difficulty){
 
         viewModelScope.launch {

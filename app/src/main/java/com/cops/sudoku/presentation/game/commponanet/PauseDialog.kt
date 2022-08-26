@@ -46,8 +46,6 @@ fun PauseDialog( onDismiss: ()->Unit,time:Long,viewModel: GameViewModel = hiltVi
 
                 Text(text = time.toTime())
 
-//                Divider(color = Color.White, thickness = 0.8.dp)
-
                 Row(
                     Modifier
                         .fillMaxWidth()

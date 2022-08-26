@@ -14,6 +14,7 @@ class SplashViewModel @Inject constructor(
 ) : ViewModel()  {
 
     var status =mutableStateOf(false)
+    // to check if game opened before to show how to play onBoarding
     val isSaved = mutableStateOf(false)
 
     fun onEvent(){
